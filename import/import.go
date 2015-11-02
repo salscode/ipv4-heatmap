@@ -5,6 +5,7 @@ import (
     "fmt"
     "encoding/csv"
 	"strconv"
+    "strings"
 
 	_ "github.com/go-sql-driver/mysql"
     "database/sql"
@@ -39,32 +40,13 @@ func main() {
     fmt.Println("Read Locations")
 	readLocations(locDataList)
     
+    // Delete Duplicates
+    fmt.Println("Delete Duplicates")
+    condensedList := deleteDuplicates(locDataList)
+    
     // Open DB
     fmt.Println("Insert into Database")
-    
-    db, err := sql.Open("mysql", "geodata:hF9yaD5XNTnDXVwf@/geodata?charset=utf8")
-    checkErr(err)
-    
-    insertStmt, err := db.Prepare("INSERT INTO locations (locid, latitude, longitude, ipcount) VALUES(?, ?, ?, ?)")
-    checkErr(err)
-    
-    _, err = db.Query("TRUNCATE TABLE locations")
-    checkErr(err)
-    
-    transaction, err := db.Begin()
-    checkErr(err)
-    
-    for locid, loc := range locDataList {
-        if loc.ipcount <= 0 {
-            continue;
-        }
-        
-        _, err = insertStmt.Exec(locid, loc.latitude, loc.longitude, loc.ipcount)
-        checkErr(err)
-    }
-    
-    err = transaction.Commit()
-    checkErr(err)
+    fillDatabase(condensedList)
 }
 
 func checkErr(err error) {
@@ -144,4 +126,52 @@ func readBlocks(locDataList map[int64]*LocData) {
         
         locDataList[locid].IncrementIPCount(ipcount)
     }
+}
+
+func deleteDuplicates(locDataList map[int64]*LocData) map[string]int32 {
+    condensedList := make(map[string]int32)
+    
+    for _, each := range locDataList {
+        key := fmt.Sprintf("%8.4f,%8.4f", each.latitude, each.longitude)
+        
+        _, ok := condensedList[key]
+        if !ok {
+            condensedList[key] = each.ipcount
+        } else {
+            condensedList[key] += each.ipcount
+        }
+    }
+    
+    return condensedList
+}
+
+func fillDatabase(condensedList map[string]int32) {
+    db, err := sql.Open("mysql", "geodata:hF9yaD5XNTnDXVwf@/geodata?charset=utf8")
+    checkErr(err)
+    
+    insertStmt, err := db.Prepare("INSERT INTO locations (latitude, longitude, ipcount) VALUES(?, ?, ?)")
+    checkErr(err)
+    
+    _, err = db.Query("TRUNCATE TABLE locations")
+    checkErr(err)
+    
+    transaction, err := db.Begin()
+    checkErr(err)
+    
+    for ipstr, ipcnt := range condensedList {
+        if ipcnt <= 0 {
+            continue;
+        }
+        
+        s := strings.Split(ipstr, ",")
+        if len(s) != 2 {
+            continue;
+        }
+        
+        _, err = insertStmt.Exec(s[0], s[1], ipcnt)
+        checkErr(err)
+    }
+    
+    err = transaction.Commit()
+    checkErr(err)
 }
