@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+	<style>
+		#map { height: 850px; }
+	</style>
+	<title>{{.Title}} | Heatmap</title>
+</head>
+
+<body>
+	<div id="map"></div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+	<script src="js/leaflet-heat.js"></script>
+	<script>
+		$(document).ready(function() {
+			var map = L.map('map').setView([35.889599, -78.924400], 5);
+			L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery � <a href="http://mapbox.com">Mapbox</a>',
+				minZoom: 2,
+				id: 'skytoastersal.o27gaj6k',
+				accessToken: 'pk.eyJ1Ijoic2t5dG9hc3RlcnNhbCIsImEiOiJhYWJjNDNhNzc0MjJkZmY4ZjU0NzliOTU4Y2IwZWY5OSJ9.YZfsXmBNb_C1OAQ7JPOFRg'
+			}).addTo(map);
+			
+			var heat;
+			jQuery.getScript("http://heatmap.salscode.com/locations", function( data, textStatus, jqxhr ) {
+				heat = L.heatLayer(locations, { radius: 35, blur: 10, gradient: {0.2: 'blue', 0.4: 'lime', 0.8: 'red'} }).addTo(map);
+			});
+			
+			function onMapChange(e) {
+				var bounds = map.getBounds().pad(1.05);
+				jQuery.getScript("http://heatmap.salscode.com/locations/" + bounds.getNorth() + "/" + bounds.getEast() + "/" + bounds.getSouth() + "/" + bounds.getWest());
+				heat.setLatLngs(locations);
+				heat.redraw();
+			}
+			
+			map.on('load', onMapChange);
+			map.on('moveend', onMapChange);
+		});
+	</script>
+</body>
+</html>
