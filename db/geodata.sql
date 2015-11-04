@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS `locations` (
   `latitude` float(8,4) NOT NULL,
   `longitude` float(8,4) NOT NULL,
   `ipcount` int(10) unsigned NOT NULL DEFAULT '0',
-  PRIMARY KEY (`locid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=0;
+  PRIMARY KEY (`locid`),
+  KEY `latlon` (`latitude`,`longitude`,`ipcount`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
