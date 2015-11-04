@@ -1,4 +1,4 @@
-package main
+package geolite
 
 import (
     "os"
@@ -11,52 +11,33 @@ import (
     "database/sql"
 )
 
-type LocData struct {
-    latitude float64
-    longitude float64
-    ipcount int32
-}
+// Used for the legacy GeoLite db, http://dev.maxmind.com/geoip/legacy/geolite/
 
-func (l *LocData) SetLatLon(lat float64, lon float64) {
-    l.latitude = lat;
-    l.longitude = lon;
-}
-
-func (l *LocData) IncrementIPCount(count int32) {
-    if count > 0 {
-        l.ipcount += count;
-    }
-}
-
-func main() {
+func Import1() error {
     var locDataList map[int64]*LocData
     locDataList = make(map[int64]*LocData)
     
     // Read Blocks
     fmt.Println("Read Blocks")
-    readBlocks(locDataList)
+    readBlocks1(locDataList)
     
     // Read Locations
     fmt.Println("Read Locations")
-	readLocations(locDataList)
+	readLocations1(locDataList)
     
     // Delete Duplicates
     fmt.Println("Delete Duplicates")
-    condensedList := deleteDuplicates(locDataList)
+    condensedList := deleteDuplicates1(locDataList)
     
     // Open DB
     fmt.Println("Insert into Database")
-    fillDatabase(condensedList)
+    fillDatabase1(condensedList)
+    
+    return nil;
 }
 
-func checkErr(err error) {
-    if err != nil {
-        panic(err)
-    }
-}
-
-func readLocations(locDataList map[int64]*LocData) {
-    locFile, err := os.Open("GeoLiteCity-Location.csv")
+func readLocations1(locDataList map[int64]*LocData) {
+    locFile, err := os.Open("data/GeoLiteCity-Location.csv")
     checkErr(err)
     
     locFileReader := csv.NewReader(locFile)
@@ -88,8 +69,8 @@ func readLocations(locDataList map[int64]*LocData) {
     }
 }
 
-func readBlocks(locDataList map[int64]*LocData) {
-    blockFile, err := os.Open("GeoLiteCity-Blocks.csv")
+func readBlocks1(locDataList map[int64]*LocData) {
+    blockFile, err := os.Open("data/GeoLiteCity-Blocks.csv")
     checkErr(err)
     
     blockFileReader := csv.NewReader(blockFile)
@@ -128,7 +109,7 @@ func readBlocks(locDataList map[int64]*LocData) {
     }
 }
 
-func deleteDuplicates(locDataList map[int64]*LocData) map[string]int32 {
+func deleteDuplicates1(locDataList map[int64]*LocData) map[string]int32 {
     condensedList := make(map[string]int32)
     
     for _, each := range locDataList {
@@ -145,7 +126,7 @@ func deleteDuplicates(locDataList map[int64]*LocData) map[string]int32 {
     return condensedList
 }
 
-func fillDatabase(condensedList map[string]int32) {
+func fillDatabase1(condensedList map[string]int32) {
     db, err := sql.Open("mysql", "geodata:hF9yaD5XNTnDXVwf@/geodata?charset=utf8")
     checkErr(err)
     
