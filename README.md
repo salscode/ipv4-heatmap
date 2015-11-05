@@ -16,3 +16,8 @@ The main.go file powers the endpoint and also serves the main map map along with
 There are 2 APIs:
 * /locations - Used to fetch a list of all location/IP data.
 * /locations/{latitude1}/{longitude1}/{latitude2}/{longitude2} - Used to fetch location/IP data within a Lat/Lon bounding box.
+
+## TODO
+* The heat intensities are not bright enough when zoomed in at the city level.
+* Some inter-state zoom levels could be improved in terms of heatmap display.
+* Create a way to cancel previous pending requests when a new request is issued.
