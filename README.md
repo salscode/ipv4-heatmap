@@ -21,3 +21,4 @@ There are 2 APIs:
 * The heat intensities are not bright enough when zoomed in at the city level.
 * Some inter-state zoom levels could be improved in terms of heatmap display.
 * Create a way to cancel previous pending requests when a new request is issued.
+* Implement protocol buffers for communication with external scripts.
