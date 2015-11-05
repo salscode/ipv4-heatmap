@@ -61,10 +61,14 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func GetAllLocations(w http.ResponseWriter, r *http.Request) {
 	t0 := time.Now()
 	
+	totalQuery := fmt.Sprintf("SELECT COUNT(tmploc.intensity) count, MAX(tmploc.intensity) maxintensity FROM (SELECT LOG(SUM(ipcount)) intensity FROM locations GROUP BY TRUNCATE(latitude, 0), TRUNCATE(longitude, 0)) tmploc")
+	count, maxintensity := processTotalQuery(totalQuery)
+	
 	rows, err := db.Query("SELECT TRUNCATE(latitude, 0) lattrunc, TRUNCATE(longitude, 0) lontrunc, LOG(SUM(ipcount)) ipcount FROM locations GROUP BY lattrunc, lontrunc")
     checkErr(err)
 	
-	PrintLocations(w, rows, "[%4.0f, %4.0f, %3.1f],\n")
+	printLocations(w, rows, count, maxintensity, "[%4.0f, %4.0f, %2.1f],\n")
+	rows.Close()
 	
 	t1 := time.Now()
     fmt.Printf("The call took %v to run.\n", t1.Sub(t0))
@@ -105,47 +109,69 @@ func GetLocations(w http.ResponseWriter, r *http.Request) {
 	// Calculate truncation
 	// No substantial reduction in result count between 4 decimal places and 3 or 2.
 	trunc := 0
-	coordFormat := "[%4.0f, %4.0f, %3.1f],\n"
+	coordFormat := "[%4.0f, %4.0f, %2.1f],\n"
 	
 	fmt.Printf("Offset = %f ", offset)
 	
 	if offset < 30 {
 		trunc = 4
-		coordFormat = "[%8.4f, %8.4f, %3.1f],\n"
+		coordFormat = "[%8.4f, %8.4f, %2.1f],\n"
 	} else if offset < 200 {
 		trunc = 1
-		coordFormat = "[%5.1f, %5.1f, %3.1f],\n"
+		coordFormat = "[%5.1f, %5.1f, %2.1f],\n"
 	}
+	
+	totalQuery := fmt.Sprintf("SELECT COUNT(tmploc.intensity) count, MAX(tmploc.intensity) maxintensity FROM (SELECT LOG(SUM(ipcount)) intensity FROM locations WHERE latitude >= %s AND latitude <= %s AND longitude >= %s AND longitude <= %s GROUP BY TRUNCATE(latitude, %d), TRUNCATE(longitude, %d)) tmploc", lowLat, highLat, lowLon, highLon, trunc, trunc)
+	count, maxintensity := processTotalQuery(totalQuery)
 	
 	query := fmt.Sprintf("SELECT TRUNCATE(latitude, %d) lattrunc, TRUNCATE(longitude, %d) lontrunc, LOG(SUM(ipcount)) ipcount FROM locations WHERE latitude >= %s AND latitude <= %s AND longitude >= %s AND longitude <= %s GROUP BY lattrunc, lontrunc", trunc, trunc, lowLat, highLat, lowLon, highLon)
 	
 	rows, err := db.Query(query)
     checkErr(err)
 	
-	PrintLocations(w, rows, coordFormat)
+	printLocations(w, rows, count, maxintensity, coordFormat)
+	rows.Close()
 	
 	t1 := time.Now()
     fmt.Printf("The call took %v to run.\n", t1.Sub(t0))
 }
 
-func PrintLocations(w http.ResponseWriter, rows *sql.Rows, coordFormat string) {
-	count := 0
+func printLocations(w http.ResponseWriter, rows *sql.Rows, count int32, maxintensity float32, coordFormat string) {
 	var locations string = "";
 	for rows.Next() {
         var latitude float32
         var longitude float32
-        var ipcount float64
+        var intensity float32
 		
-        err = rows.Scan(&latitude, &longitude, &ipcount)
+        err = rows.Scan(&latitude, &longitude, &intensity)
         checkErr(err)
 		
-        locations += fmt.Sprintf(coordFormat, latitude, longitude, ipcount)
+		adjustedInt := intensity/maxintensity
+		if (adjustedInt > 1) {
+			adjustedInt = 1
+		}
 		
-		count++
+        locations += fmt.Sprintf(coordFormat, latitude, longitude, adjustedInt)
 	}
 	
 	fmt.Fprintf(w, "// %d Locations\n", count)
     fmt.Fprintf(w, "var locations = [\n%s];", locations)
+}
+
+func processTotalQuery(query string) (count int32, maxintensity float32) {
+	totalData, err := db.Query(query)
+    checkErr(err)
+	
+	totalData.Next()
+	err = totalData.Scan(&count, &maxintensity)
+	checkErr(err)
+	
+	// Reduce max intensity for better display.
+	maxintensity = maxintensity * 0.7
+	
+	totalData.Close()
+	
+	return count, maxintensity
 }
 
 func checkErr(inerr error) {

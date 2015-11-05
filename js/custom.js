@@ -9,7 +9,7 @@ $(document).ready(function() {
 	
 	var heat;
 	jQuery.getScript("http://heatmap.salscode.com/locations", function( data, textStatus, jqxhr ) {
-		heat = L.heatLayer(locations, { radius: 40, blur: 25, gradient: {0.05: 'blue', 0.25: 'lime', 0.6: 'red'} }).addTo(map);
+		heat = L.heatLayer(locations, { radius: 40, blur: 25, gradient: {0.1: 'blue', 0.2: 'lime', 0.5: 'red'} }).addTo(map);
 	});
 	
 	function onMapChange(e) {
