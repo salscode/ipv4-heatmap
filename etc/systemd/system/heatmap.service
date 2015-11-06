@@ -1,0 +1,13 @@
+[Unit]
+Description=heatmap
+After=network.target
+
+[Service]
+Type=simple
+User=root
+EnvironmentFile=-/etc/sysconfig/go
+WorkingDirectory=/home
+ExecStart=/usr/local/go/bin/go run /home/main.go
+
+[Install]
+WantedBy=multi-user.target
