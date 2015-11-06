@@ -46,14 +46,14 @@ func main() {
 	router.HandleFunc("/locations", GetAllLocations)
 	router.HandleFunc("/locations/{latitude1}/{longitude1}/{latitude2}/{longitude2}", GetLocations)
 	
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./")))
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("/home")))
 	
 	http.Handle("/", router)
     log.Fatal(http.ListenAndServe(":80", router))
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("tpl/index.html")
+	t, _ := template.ParseFiles("/home/tpl/index.html")
 	p := &Page{Title: "Homepage"}
 	t.Execute(w, p)
 }
