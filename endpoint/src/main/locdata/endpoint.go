@@ -3,6 +3,7 @@ package locdata
 import (
 	"fmt"
     "log"
+	"io/ioutil"
     "net/http"
 	"strconv"
 	//"time"
@@ -21,7 +22,10 @@ type Page struct {
 }
 
 func Init() {
-	db, err = sql.Open("mysql", "geodata:hF9yaD5XNTnDXVwf@/geodata?charset=utf8")
+	dblogin, err := ioutil.ReadFile("/home/dblogin.txt")
+	checkErr(err)
+	
+	db, err = sql.Open("mysql", string(dblogin))
     checkErr(err)
 
 	router := mux.NewRouter().StrictSlash(true)
