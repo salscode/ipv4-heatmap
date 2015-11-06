@@ -92,10 +92,10 @@ func GetLocations(w http.ResponseWriter, r *http.Request) {
 	
 	fmt.Printf("Offset = %f ", offset)
 	
-	if offset < 30 {
+	if offset < 15 {
 		trunc = 4
 		coordFormat = "[%8.4f, %8.4f, %2.1f],"
-	} else if offset < 200 {
+	} else if offset < 100 {
 		trunc = 1
 		coordFormat = "[%5.1f, %5.1f, %2.1f],"
 	}
