@@ -4,6 +4,7 @@ import (
 	"fmt"
     "html/template"
     "log"
+	"io"
 	"strings"
     "net/http"
 	//"strconv"
@@ -25,6 +26,7 @@ type Page struct {
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
     router.HandleFunc("/", Index)
+	router.HandleFunc("/test", GetTest)
 	router.HandleFunc("/locations", GetAllLocations)
 	router.HandleFunc("/locations/{latitude1}/{longitude1}/{latitude2}/{longitude2}", GetLocations)
 	
@@ -38,6 +40,52 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("/home/tpl/index.html")
 	p := &Page{Title: "Homepage"}
 	t.Execute(w, p)
+}
+
+func GetTest(w http.ResponseWriter, r *http.Request) {
+	// Test all locations at endpoint
+	io.WriteString(w, "All location test.\n")
+	requestStrAll := fmt.Sprintf("http://heatmap-endpoint.salscode.com/locations/")
+	respAll, err := http.Get(requestStrAll)
+	checkErr(err)
+	
+	locRespAll, err := ioutil.ReadAll(respAll.Body)
+	respAll.Body.Close()
+	
+	locationsAll := &locdata.LocDisplayData{}
+	
+	err = proto.Unmarshal(locRespAll, locationsAll)
+	checkErr(err)
+	
+	if len(locationsAll.Lldata) <= 0 {
+		fmt.Fprintf(w, "Invalid location count of: %d\n", len(locationsAll.Lldata))
+	} else {
+		fmt.Fprintf(w, "Valid location count of: %d\n", len(locationsAll.Lldata))
+	}
+	
+	io.WriteString(w, "\n")
+	
+	// Test subset of locations at endpoint
+	io.WriteString(w, "Location subset test.\n")
+	requestStr := fmt.Sprintf("http://heatmap-endpoint.salscode.com/locations/28.7098/43.6917/-96.1083/-61.1499/")
+	resp, err := http.Get(requestStr)
+	checkErr(err)
+	
+	locResp, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	
+	locations := &locdata.LocDisplayData{}
+	
+	err = proto.Unmarshal(locResp, locations)
+	checkErr(err)
+	
+	if len(locations.Lldata) <= 0 {
+		fmt.Fprintf(w, "Invalid location count of: %d\n", len(locations.Lldata))
+	} else {
+		fmt.Fprintf(w, "Valid location count of: %d\n", len(locations.Lldata))
+	}
+	
+	io.WriteString(w, "\n")
 }
 
 func GetAllLocations(w http.ResponseWriter, r *http.Request) {
