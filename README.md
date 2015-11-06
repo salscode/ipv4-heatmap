@@ -1,5 +1,8 @@
 # ipv4-heatmap
 
+## Setup
+Create a VM with CentOS 7 (other OSes work too). Install Maria DB using the instructions found [here](https://downloads.mariadb.org/mariadb/repositories/). Then install Go using the instructions found [here](https://golang.org/doc/install).
+
 ## Database
 The heatmap data is stored in a single MySQL table. Only the latitude, longitude and IP count are stored for effeciency. The coordinates are stored to 4 decimals of precision which is more than enough for this use.
 
