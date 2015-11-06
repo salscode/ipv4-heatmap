@@ -1,10 +1,10 @@
 # ipv4-heatmap
 
 ## Setup
-Create a VM with CentOS 7 (other OSes work too). Install Maria DB using the instructions found [here](https://downloads.mariadb.org/mariadb/repositories/). Then install Go using the instructions found [here](https://golang.org/doc/install). Use the files in /etc/sysconfig and /etc/systemd to impelement main.go as the system service heatmap.
+Create 2 VMs with CentOS 7 (other OSes work too). I created one VM and cloned it into the other once it was configured using Digital Ocean's tools but that is up to you. Install Maria DB using the instructions found [here](https://downloads.mariadb.org/mariadb/repositories/). Then install Go using the instructions found [here](https://golang.org/doc/install). Use the files in /etc/sysconfig and /etc/systemd to impelement main.go as the system service heatmap. I placed my Go files in /home but the server location is up to you as long as you follow the instructions to configure Go correctly and edit the systemd config files accordingly.
 
 ## Database
-The heatmap data is stored in a single MySQL table. Only the latitude, longitude and IP count are stored for effeciency. The coordinates are stored to 4 decimals of precision which is more than enough for this use.
+The heatmap data is stored in a single MySQL table. Only the latitude, longitude and IP count are stored for effeciency. The coordinates are stored to 4 decimals of precision which is enough for this use. Create a database and a user for that database, then
 
 ## Data
 Originally used data from [GeoLite Data](http://dev.maxmind.com/geoip/legacy/geolite/) by MaxMind, imported via import.go. Now uses GeoLite 2 data from [GeoLite2 Data](http://dev.maxmind.com/geoip/geoip2/geolite2/), also from MaxMind.
