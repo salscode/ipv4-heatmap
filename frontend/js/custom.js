@@ -34,7 +34,10 @@ $(document).ready(function() {
 		heat.setOptions(heatOpts);
 	}
 	
-	map.on('load', onMapChange);
+	// Was a little flaky
+	// map.on('load', onMapChange);
+	onMapChange(null);
+	
 	map.on('moveend', onMapChange);
 	map.on('zoomend', onZoomChange);
 });
