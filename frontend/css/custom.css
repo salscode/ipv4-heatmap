@@ -1,0 +1,11 @@
+@-webkit-viewport { width: device-width; }
+@-moz-viewport { width: device-width; }
+@-ms-viewport { width: device-width; }
+@-o-viewport { width: device-width; }
+@viewport { width: device-width; }
+
+#map { height: 400px; }
+
+@media (min-width: 768px) {
+	#map { height: 600px; }
+}

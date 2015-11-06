@@ -1,0 +1,13 @@
+package locdata;
+
+message LocDisplayData {
+	message LatLon {
+		required float latitude = 1;
+		required float longitude = 2;
+		required float intensity = 3;
+	}
+	
+	repeated LatLon lldata = 1;
+	required int32 count = 2;
+	required string coordformat = 3;
+}
